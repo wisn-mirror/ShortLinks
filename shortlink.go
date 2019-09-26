@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 )
 
 func main() {
@@ -27,13 +28,30 @@ type shortReq struct {
 	ExpirationInMinute int64 `json:"expiration_inminutes" validate:"min=0"`
 }
 
-type shortLinkResponse struct {
-	ShortLink string  `json:"short_link"`
+type ShopInfo struct {
+	key string `json:key`
+	target string`json:target`
 }
+type NameSpace struct {
+	data map[string]string
+}
+
+func (ns *NameSpace)add(key  string,value string )  {
+	ns.data[key]=value
+}
+
+func (ns *NameSpace)get(key  string )string  {
+	return ns.data[key]
+}
+var ns NameSpace
+
 
 func( app *App) Init()  {
 	app.Router=mux.NewRouter()
 	app.initRoute()
+	ns=NameSpace{
+		data: make(map[string]string),
+	}
 }
 func ( app *App)Run(address string )  {
 	error := http.ListenAndServe(address, app.Router)
@@ -49,37 +67,57 @@ func( app *App) initRoute()  {
 }
 
 func (app *App)createShortLink(response http.ResponseWriter, request *http.Request)  {
-	fmt.Println("createShortLink")
+	defer request.Body.Close()
+	fmt.Println("createShortLink",ns)
 	var req shortReq
 	if error:=json.NewDecoder(request.Body).Decode(&req);error!=nil{
-		returnResponseJson(response,500,error)
+		returnResponseError(response,500,nil,error.Error())
 		return
 	}
-	returnResponseJson(response,200,&req.URL)
+	ns.add(strconv.Itoa(len(ns.data)),req.URL)
+	returnResponseJson(response,&req.URL)
 }
 
 func (app *App)getShortLinkInfo(response http.ResponseWriter,request *http.Request)  {
-	fmt.Println("getShortLinkInfo")
-
+	fmt.Println("getShortLinkInfo:",ns)
+	values := request.URL.Query()
+	key := values.Get("key")
+	target:=ns.get(key)
+	if target == "" {
+		returnResponseError(response, 500, nil, "no key")
+		return
+	}
+	shopinfo:=ShopInfo{
+		key:key,
+		target:target,
+	}
+	returnResponseJson(response,shopinfo)
 }
 
 func (app *App)redirect(response http.ResponseWriter,request *http.Request)  {
-	fmt.Println("redirect")
+	fmt.Println("redirect",ns)
+	vars := mux.Vars(request)
+	fmt.Println(vars)
+	key :=vars["sk"]
+	target:=ns.get(key)
+	http.Redirect(response,request,target,http.StatusTemporaryRedirect)
+	//http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 
 }
-func returnResponseJson(response http.ResponseWriter,status int ,content interface{})  {
+func returnResponseError(response http.ResponseWriter,status int ,content interface{},message string)  {
+	if message == "" {
+		message = http.StatusText(status)
+	}
 	res, _ := json.Marshal(BaseResponse{
 		Code:    status,
-		Message: http.StatusText(status),
+		Message:message ,
 		Content: content,
 	})
-	response.Header().Set("Content-type","application/json")
+	response.WriteHeader(status)
+	response.Header().Set("Content-Type","application/json;charset=utf-8")
 	_, _ = response.Write(res)
 }
 
-/*
-type BaseResponse struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Content interface{} `json:content`
-}*/
+func returnResponseJson(response http.ResponseWriter,content interface{})  {
+	returnResponseError(response,200,content,"处理成功")
+}
