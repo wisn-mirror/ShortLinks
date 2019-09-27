@@ -25,13 +25,24 @@ type BaseResponse struct {
 
 type shortReq struct {
 	URL string  `json:"url" validate:"nonzero"`
+	Name string  `json:"name"`
+	Password string  `json:"password"`
+	List   []listTemp `json:"list"`
 	ExpirationInMinute int64 `json:"expiration_inminutes" validate:"min=0"`
 }
 
-type SLInfo struct {
-	Key    string `json:"key"`
-	Target string `json:"target"`
+type listTemp struct {
+	Name string  `json:"name"`
 }
+
+type SLInfo struct {
+	Key    string     `json:"key"`
+	Target string     `json:"target"`
+	List   []listTemp `json:"list"`
+}
+var ns NameSpace
+
+
 type NameSpace struct {
 	data map[string]string
 }
@@ -43,19 +54,18 @@ func (ns *NameSpace)add(key  string,value string )  {
 func (ns *NameSpace)get(key  string )string  {
 	return ns.data[key]
 }
-var ns NameSpace
 
 
 func( app *App) Init()  {
-	app.Router=mux.NewRouter()
+	app.Router = mux.NewRouter()
 	app.initRoute()
-	ns=NameSpace{
+	ns = NameSpace{
 		data: make(map[string]string),
 	}
 }
 func ( app *App)Run(address string )  {
 	error := http.ListenAndServe(address, app.Router)
-	if error!=nil{
+	if error != nil {
 		panic(error)
 	}
 }
@@ -68,12 +78,13 @@ func( app *App) initRoute()  {
 
 func (app *App)createShortLink(response http.ResponseWriter, request *http.Request)  {
 	defer request.Body.Close()
-	fmt.Println("createShortLink",ns)
 	var req shortReq
 	if error:=json.NewDecoder(request.Body).Decode(&req);error!=nil{
 		returnResponseError(response,500,nil,error.Error())
 		return
 	}
+	fmt.Println("requestjson:",request.Body)
+	fmt.Println("createShortLink",ns," ",req)
 	ns.add(strconv.Itoa(len(ns.data)),req.URL)
 	returnResponseJson(response,&req.URL)
 }
@@ -87,9 +98,17 @@ func (app *App)getShortLinkInfo(response http.ResponseWriter,request *http.Reque
 		returnResponseError(response, 500, nil, "no key")
 		return
 	}
+	temp:=make([]listTemp,0)
+	temp=append(temp,listTemp{
+		Name:"a",
+	})
+	temp=append(temp,listTemp{
+		Name:"b",
+	})
 	shopinfo:=SLInfo{
 		Key:    key,
 		Target: target,
+		List: temp,
 	}
 	fmt.Println(shopinfo)
 	returnResponseJson(response,shopinfo)
@@ -114,8 +133,9 @@ func returnResponseError(response http.ResponseWriter,status int ,content interf
 		Message: message,
 		Content: content,
 	})
-	response.WriteHeader(status)
 	response.Header().Set("Content-Type","application/json;charset=utf-8")
+	response.Header().Set("AAA","12345")
+	response.WriteHeader(status)
 	_, _ = response.Write(res)
 }
 
