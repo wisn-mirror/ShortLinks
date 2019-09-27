@@ -20,17 +20,17 @@ type App struct {
 type BaseResponse struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
-	Content interface{} `json:content`
+	Content interface{} `json:"content"`
 }
 
 type shortReq struct {
-	URL string  `json:"url" validate:nonzero`
+	URL string  `json:"url" validate:"nonzero"`
 	ExpirationInMinute int64 `json:"expiration_inminutes" validate:"min=0"`
 }
 
-type ShopInfo struct {
-	key string `json:key`
-	target string`json:target`
+type SLInfo struct {
+	Key    string `json:"key"`
+	Target string `json:"target"`
 }
 type NameSpace struct {
 	data map[string]string
@@ -63,7 +63,7 @@ func ( app *App)Run(address string )  {
 func( app *App) initRoute()  {
 	app.Router.HandleFunc("/api/shorten",app.createShortLink).Methods("POST")
 	app.Router.HandleFunc("/api/info",app.getShortLinkInfo).Methods("GET")
-	app.Router.HandleFunc("/{sk:[a-zA-z0-9]{1,11}}",app.redirect).Methods("GET")
+	app.Router.HandleFunc("/s/{sk:[a-zA-z0-9]{1,11}}",app.redirect).Methods("GET")
 }
 
 func (app *App)createShortLink(response http.ResponseWriter, request *http.Request)  {
@@ -79,18 +79,19 @@ func (app *App)createShortLink(response http.ResponseWriter, request *http.Reque
 }
 
 func (app *App)getShortLinkInfo(response http.ResponseWriter,request *http.Request)  {
-	fmt.Println("getShortLinkInfo:",ns)
 	values := request.URL.Query()
 	key := values.Get("key")
+	fmt.Println("getShortLinkInfo:",key," ",ns)
 	target:=ns.get(key)
 	if target == "" {
 		returnResponseError(response, 500, nil, "no key")
 		return
 	}
-	shopinfo:=ShopInfo{
-		key:key,
-		target:target,
+	shopinfo:=SLInfo{
+		Key:    key,
+		Target: target,
 	}
+	fmt.Println(shopinfo)
 	returnResponseJson(response,shopinfo)
 }
 
@@ -110,7 +111,7 @@ func returnResponseError(response http.ResponseWriter,status int ,content interf
 	}
 	res, _ := json.Marshal(BaseResponse{
 		Code:    status,
-		Message:message ,
+		Message: message,
 		Content: content,
 	})
 	response.WriteHeader(status)
