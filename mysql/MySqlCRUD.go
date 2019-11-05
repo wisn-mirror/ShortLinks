@@ -13,6 +13,7 @@ type User struct {
 	Name string `db:Name`
 	V1 float32 `db:v1`
 }
+
 func main() {
 	initDb()
 	//QueryByFiled(1)
@@ -26,6 +27,7 @@ func main() {
 	QueryAll(10)
 
 }
+
 //事务
 func TxExcute()  {
 	tx, txError := mysqldb.Begin()
@@ -96,6 +98,7 @@ func QueryAll( limit int )  {
 	}
 	fmt.Println("user list data",users)
 }
+
 func QueryByFiled(id int )  {
 	user:=new (User)
 	row:=mysqldb.QueryRow("select id,age,name from tab01 where id=?",id)
@@ -107,19 +110,20 @@ func QueryByFiled(id int )  {
 	fmt.Println("user data",user)
 }
 
-/*const (
+const (
 	USER_NAME = "root"
 	PASS_WORD = "nihao@123456"
 	HOST      = "localhost"
 	PORT      = "3306"
 	DATABASE  = "test01"
 	CHARSET   = "utf8"
-)*/
+)
 var mysqldb *sql.DB
 var mysqlError error
 func initDb() bool  {
-	//dbDSN := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s", USER_NAME, PASS_WORD, HOST, PORT, DATABASE, CHARSET)
-	mysqldb, mysqlError = sql.Open("mysql", "root:nihao@123456@/test01")
+	dbDSN := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s", USER_NAME, PASS_WORD, HOST, PORT, DATABASE, CHARSET)
+	mysqldb, mysqlError = sql.Open("mysql", dbDSN)
+	//mysqldb, mysqlError = sql.Open("mysql", "root:nihao@123456@/test01")
 	if mysqlError!=nil{
 		fmt.Println("connect error",mysqlError)
 		return false

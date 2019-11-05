@@ -1,0 +1,2 @@
+go get github.com/gomodule/redigo/redis
+ go get -u github.com/go-sql-driver/mysql
