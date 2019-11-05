@@ -58,6 +58,13 @@ func moreFileUpload() {
 			return
 		}
 		files:=form.File["files"]
+		if files==nil||len(files)==0{
+			context.JSON(200, gin.H{
+				"code":    500,
+				"message": "缺少必要参数",
+			})
+			return
+		}
 		var filestatus []fileloadStatus
 		for index,file:=range files{
 			saveFileError :=context.SaveUploadedFile(file,"./upload/"+strconv.Itoa(index)+"_"+file.Filename)
@@ -73,6 +80,7 @@ func moreFileUpload() {
 				})
 			}
 		}
+
 		context.JSON(200, gin.H{
 			"code":    200,
 			"message": "成功",
