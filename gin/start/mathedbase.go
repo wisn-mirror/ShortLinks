@@ -6,10 +6,10 @@ import (
 )
 
 func main() {
-	//ginDemo1()
+	ginDemo1()
 	//requestType()
 	//staticFile()
-	urlParam()
+	//urlParam()
 }
 
 //gin 入门
