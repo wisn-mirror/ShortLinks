@@ -22,7 +22,7 @@ func ginDemo1() {
 			"data":    "hello",
 		})
 	})
-	g.Run()
+	g.Run(":8080")
 }
 
 //各种请求 get post delete put ...

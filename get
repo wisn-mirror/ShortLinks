@@ -1,7 +1,7 @@
 go get github.com/gomodule/redigo/redis
  go get -u github.com/go-sql-driver/mysql
 go get github.com/kataras/iris/v12.1.4
-
+go get -u github.com/golang/net/websocket
 github.com/BurntSushi/toml
 
 //拉去依赖的所有的
