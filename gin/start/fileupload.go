@@ -51,16 +51,16 @@ func moreFileUpload() {
 		form, multipartError := context.MultipartForm()
 		if multipartError!=nil{
 			context.JSON(500, gin.H{
-				"code":    500,
+				"code":    0,
 				"message": multipartError.Error(),
 			})
 			context.Abort()
 			return
 		}
-		files:=form.File["files"]
+		files:=form.File["file"]
 		if files==nil||len(files)==0{
 			context.JSON(200, gin.H{
-				"code":    500,
+				"code":    0,
 				"message": "缺少必要参数",
 			})
 			return
@@ -82,7 +82,7 @@ func moreFileUpload() {
 		}
 
 		context.JSON(200, gin.H{
-			"code":    200,
+			"code":    0,
 			"message": "成功",
 			"data":filestatus,
 		})

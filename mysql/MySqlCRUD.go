@@ -6,7 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"time"
 )
-
+ 
 type User struct {
 	Id int `db:id`
 	Age int `db:age`

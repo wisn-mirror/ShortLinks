@@ -1,4 +1,4 @@
-package main
+package _1
 import (
 "fmt"
 "golang.org/x/net/websocket"
